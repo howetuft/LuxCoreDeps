@@ -9,10 +9,7 @@ compiler.cppstd={{ os.getenv("CXX_VERSION") }}
 compiler.runtime=dynamic
 
 [conf]
-tools.build:cxxflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2", "/arch:AVX"]
-tools.build:cflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2", "/arch:AVX"]
+tools.build:cxxflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2" ]
+tools.build:cflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2" ]
 embree3/*:tools.build:cxxflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2"]
 
-[options]
-# MSVC does not support avx2 nor avx512
-openvdb/*:simd=AVX
