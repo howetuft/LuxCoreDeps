@@ -2,10 +2,10 @@ include(conan-profile-common)
 
 [settings]
 os=Macos
-os.version=10.15
+os.version=11.0
 arch=x86_64
 compiler=apple-clang
-compiler.version=14.0
+compiler.version=15.0
 compiler.cppstd={{ os.getenv("CXX_VERSION") }}
 compiler.libcxx=libc++
 
