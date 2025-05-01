@@ -153,7 +153,7 @@ jobs:
         with:
           script: |
             if ('${{ runner.arch }}' == 'X64') {
-              target = '10.15';
+              target = '11.0';
               arch='x86_64';
             }
             else {
@@ -162,6 +162,22 @@ jobs:
             }
             core.exportVariable('MACOSX_DEPLOYMENT_TARGET', target);
             core.exportVariable('PKG_ARCH', arch);
+
+      - name: Prepare MacOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+            brew install llvm@20
+            brew install lld
+            _T=$(brew --prefix llvm@20)
+            echo "CXX=${_T}/bin/clang++" >> $GITHUB_ENV
+            echo "CC=${_T}/bin/clang" >> $GITHUB_ENV
+            #echo "AR=${_T}/bin/ar" >> $GITHUB_ENV
+            #echo "RANLIB=${_T}/bin/ranlib" >> $GITHUB_ENV
+            #echo "LDFLAGS=-fuse-ld=$_T/bin/ld64.lld" >> $GITHUB_ENV
+            echo "PATH=${_T}/bin:$PATH" >> $GITHUB_ENV
+            echo "LDFLAGS=-L${_T}/lib" >> $GITHUB_ENV
+            echo "CPPFLAGS=-I${_T}/include" >> $GITHUB_ENV
 
       - name: Retrieve cached dependencies (All)
         if: env.REBUILD_ALL != true
