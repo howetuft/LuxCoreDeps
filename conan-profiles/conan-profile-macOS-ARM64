@@ -5,7 +5,7 @@ os=Macos
 os.version=11.0
 arch=armv8
 compiler=apple-clang
-compiler.version=15
+compiler.version=16
 compiler.cppstd={{ os.getenv("CXX_VERSION") }}
 compiler.libcxx=libc++
 

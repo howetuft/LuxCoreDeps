@@ -3,26 +3,40 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Caveat!
-# LUXDEPS_VERSION, RUNNER_OS, RUNNER_ARCH must be set by caller
+# LUXDEPS_VERSION, RUNNER_OS, RUNNER_ARCH, MACOSX_INTEL must be set by caller
 #
+
+# MacOS cross-compilation:
+# https://docs.conan.io/2/tutorial/consuming_packages/cross_building_with_conan.html
+# https://github.com/conan-io/conan/issues/16585
+
 die() { rc=$?; (( $# )) && printf '::error::%s\n' "$*" >&2; exit $(( rc == 0 ? 1 : rc )); }
 test -n "$LUXDEPS_VERSION" || die "LUXDEPS_VERSION not set"
 test -n "$RUNNER_OS" || die "RUNNER_OS not set"
 test -n "$RUNNER_ARCH" || die "RUNNER_ARCH not set"
 
-CONAN_PROFILE=conan-profile-${RUNNER_OS}-${RUNNER_ARCH}
+CONAN_PROFILE_BUILD=conan-profile-${RUNNER_OS}-${RUNNER_ARCH}
+
+echo "Cross-compiling: ${TARGET_MACOSX_INTEL}"
+if [[ "${TARGET_MACOSX_INTEL}" == 'true' ]]; then
+    CONAN_PROFILE_HOST=conan-profile-${RUNNER_OS}-X64
+else
+    CONAN_PROFILE_HOST=$CONAN_PROFILE_BUILD
+fi
 
 function conan_local_install() {
   name=$(echo "$1" | tr '[:upper:]' '[:lower:]')  # Package name in lowercase
 
   conan create \
-    --profile:all=$CONAN_PROFILE \
+    --profile:build=$CONAN_PROFILE_BUILD \
+    --profile:host=$CONAN_PROFILE_HOST \
     --build=missing \
     --remote=mycenter \
     -vnotice \
     $WORKSPACE/local-conan-recipes/$name
   conan install \
-    --profile:all=$CONAN_PROFILE \
+    --profile:build=$CONAN_PROFILE_BUILD \
+    --profile:host=$CONAN_PROFILE_HOST \
     --build=missing \
     --remote=mycenter \
     -vnotice \
@@ -74,7 +88,8 @@ echo "::endgroup::"
 # Install profiles
 echo "::group::CIBW_BEFORE_BUILD: profiles"
 conan create $WORKSPACE/conan-profiles \
-  --profile:all=$WORKSPACE/conan-profiles/$CONAN_PROFILE \
+  --profile:build=$WORKSPACE/conan-profiles/$CONAN_PROFILE_BUILD \
+  --profile:host=$WORKSPACE/conan-profiles/$CONAN_PROFILE_HOST \
   --version=$LUXDEPS_VERSION
 conan config install-pkg -vvv luxcoreconf/$LUXDEPS_VERSION@luxcore/luxcore
 echo "::endgroup::"
@@ -121,7 +136,8 @@ fi
 for d in "${build_deps[@]}"; do
   conan install \
     --tool-requires=${d}/[*] \
-    --profile:all=$CONAN_PROFILE \
+    --profile:build=$CONAN_PROFILE_BUILD \
+    --profile:host=$CONAN_PROFILE_HOST \
     --build=missing \
     --remote=conancenter \
     --build=b2/*
@@ -132,7 +148,8 @@ echo "::group::CIBW_BEFORE_BUILD: Create LuxCore Deps"
 cd $WORKSPACE
 # Create package (without using conancenter precompiled binaries)
 conan create $WORKSPACE \
-  --profile:all=$CONAN_PROFILE \
+  --profile:build=$CONAN_PROFILE_BUILD \
+  --profile:host=$CONAN_PROFILE_HOST \
   --version=$LUXDEPS_VERSION \
   --remote=mycenter \
   --build=missing
@@ -147,7 +164,8 @@ conan graph info \
   --requires=luxcoreconf/$LUXDEPS_VERSION@luxcore/luxcore \
   --format=json \
   --remote=mycenter \
-  --profile:all=$CONAN_PROFILE \
+  --profile:build=$CONAN_PROFILE_BUILD \
+  --profile:host=$CONAN_PROFILE_HOST \
   > graph.json
 conan list --graph=graph.json --format=json --graph-binaries=Cache > list.json
 conan cache save -vverbose --file=$cache_dir/conan-cache-save.tgz --list=list.json

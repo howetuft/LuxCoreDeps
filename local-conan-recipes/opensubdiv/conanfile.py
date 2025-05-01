@@ -92,7 +92,7 @@ class OpenSubdivConan(ConanFile):
                 self.requires("onetbb/2021.10.0", transitive_headers=True)
 
         # For Macos, we rely on llvm openmp
-        if self.options.with_omp and self.settings.os == "Macos":
+        if self.settings.os == "Macos" and self.options.with_omp:
             self.requires("llvm-openmp/[*]", transitive_headers=True, transitive_libs=True)
 
     def validate(self):
@@ -144,7 +144,7 @@ class OpenSubdivConan(ConanFile):
         tc.variables["NO_GLTESTS"] = True
         tc.variables["NO_MACOS_FRAMEWORK"] = True
         tc.cache_variables["CMAKE_VERBOSE_MAKEFILE"] = True
-        tc.cache_variables["OPENMP_FOUND"] = True  # Force OpenMP
+        tc.cache_variables["OPENMP_FOUND"] = self.options.with_omp  # Force OpenMP
         tc.generate()
 
         deps = CMakeDeps(self)
@@ -155,12 +155,15 @@ class OpenSubdivConan(ConanFile):
         if self.settings.os == "Macos" and not self._osd_gpu_enabled:
             path = os.path.join(self.source_folder, "opensubdiv", "CMakeLists.txt")
             replace_in_file(self, path, "$<TARGET_OBJECTS:osd_gpu_obj>", "")
+
+        if self.settings.os == "Macos" and self.options.with_omp:
             replace_in_file(
                 self,
                 os.path.join(self.source_folder, "opensubdiv", "osd", "CMakeLists.txt"),
                 "target_link_libraries(osd_cpu_obj",
                 "target_link_libraries(osd_cpu_obj OpenMP::OpenMP",
             )
+
         # No warnings as errors
         replace_in_file(self, os.path.join(self.source_folder, "CMakeLists.txt"), "/WX", "")
 
