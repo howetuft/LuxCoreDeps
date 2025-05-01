@@ -100,6 +100,11 @@ class FmtConan(ConanFile):
             if self._has_with_unicode_option:
                 tc.cache_variables["FMT_UNICODE"] = bool(self.options.with_unicode)
             tc.generate()
+        else:
+            tc = CMakeToolchain(self)
+            tc.cache_variables["FMT_DOC"] = False
+            tc.cache_variables["FMT_TEST"] = False
+            tc.generate()
 
     def build(self):
         apply_conandata_patches(self)
