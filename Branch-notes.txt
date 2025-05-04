@@ -1,0 +1,21 @@
+Notes about this branch:
+2025-05-04
+
+First intended to respond to same branch in Core, aiming at reducing Boost footprint.
+Big obstacle encountered: Boost::thread replacement. The right standard object is jthread, defined in C++20.
+However, Apple-clang does not fully implement this standard, especially in macos13.
+clang substitution seems possible, but in some APPLE cmake variable seems not to be defined in some subdeps (however, may be a side effect of CIBW?)
+
+But from one thing to another, macos intel cross-compiling was explored.
+Cross-compiling from arm64 to x86_64 appears possible, thanks to conan profiles
+Moreover, macos-latest has moved to macos-15.
+Finally, a set of release deps packages have been build in macos-15 and macos-15-intel
+This is the main lesson learnt from the attempt of this branch.
+Note however that:
+- deps produced by cross-compiling have not been tested yet
+- macos-15 does not solve jthread issue, as macos-15 relies on clang 16.0, and jthread are introduced in clang 18 (as an experimental feature...).
+
+But a conclusion would be that macos intel could be obtained from macos-latest, making all of that tend to more homogeneous environment.
+There could be 2 obstacles at least, however:
+- python should be installed for the right architecture (x86_64), in core.
+- x86_64 wheels should be tested in a macos-13 runner, to be sure.
