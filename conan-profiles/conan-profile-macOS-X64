@@ -2,10 +2,10 @@ include(conan-profile-common)
 
 [settings]
 os=Macos
-os.version=10.15
+#os.version=15.6
 arch=x86_64
 compiler=apple-clang
-compiler.version=14.0
+compiler.version=16.0
 compiler.cppstd={{ os.getenv("CXX_VERSION") }}
 compiler.libcxx=libc++
 
@@ -21,9 +21,10 @@ openvdb/*:simd=AVX
 opensubdiv/*:with_metal=False
 embree/*:shared=True
 
-[buildenv]
-CXX=clang++
-CC=clang
+# TODO
+#[buildenv]
+#CXX=clang++
+#CC=clang
 
 [conf]
 &:tools.build:cxxflags+=["-ftree-vectorize", "-march=x86-64-v3", "-O3", "-mno-avx2"]

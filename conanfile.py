@@ -16,6 +16,7 @@ EIGEN_VERSION = "5.0.0"
 EMBREE_VERSION = "4.3.3"
 FMT_VERSION = "12.0.0"
 GLFW_VERSION = "3.4"
+HWLOC_VERSION = "2.11.1"
 IMATH_VERSION = "3.2.1"
 IMGUI_VERSION = "1.92.4"
 IMGUIFILEDIALOG_VERSION = "0.6.7"
@@ -48,8 +49,8 @@ class LuxCoreDeps(ConanFile):
     channel = "luxcore"
 
     requires = [
-        f"openvdb/{OPENVDB_VERSION}",
         f"embree/{EMBREE_VERSION}",
+        f"openvdb/{OPENVDB_VERSION}",
         f"oidn/{OIDN_VERSION}@luxcore/luxcore",
         f"opensubdiv/{OPENSUBDIV_VERSION}",
         f"openimageio/{OIIO_VERSION}",
@@ -62,11 +63,17 @@ class LuxCoreDeps(ConanFile):
 
     def requirements(self):
         self.requires(
+            f"hwloc/{HWLOC_VERSION}",
+            override=True,
+            libs=True,
+            transitive_libs=True,
+        )
+        self.requires(
             f"onetbb/{TBB_VERSION}",
             override=True,
             libs=True,
             transitive_libs=True,
-        )  # For oidn
+        )
         self.requires(
             f"libdeflate/{LIBDEFLATE_VERSION}",
             force=True,

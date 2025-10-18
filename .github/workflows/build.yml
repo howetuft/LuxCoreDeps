@@ -28,8 +28,9 @@ jobs:
     strategy:
       fail-fast: False
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-15]
-        #os: [macos-15-intel, macos-15]
+        #os: [ubuntu-latest, windows-latest, macos-15-intel, macos-15]
+        #os: [ubuntu-latest, macos-15-intel, macos-15]
+        os: [macos-15]
     env:
       BUILD_TYPE: Release
       # SANITIZE: true # uncomment to sanitize
@@ -173,12 +174,44 @@ jobs:
               arch='x86_64';
             }
             else {
-              target = '12.0';
+              target = '15.0';
               arch='armv8';
             }
             core.exportVariable('MACOSX_DEPLOYMENT_TARGET', target);
             core.exportVariable('CMAKE_OSX_DEPLOYMENT_TARGET', target);
             core.exportVariable('PKG_ARCH', arch);
+
+      - name: Prepare MacOS (set build tools)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+            # We make conan believe we use apple-clang (see profiles), but
+            # actually we use recent version of llvm, to get full compatibility
+            # with C++20
+            brew install llvm@20
+            LLVM_PREFIX=$(brew --prefix llvm@20)
+            echo "LLVM_PREFIX=${LLVM_PREFIX}" >> $GITHUB_ENV
+            echo "CC=${LLVM_PREFIX}/bin/clang" >> $GITHUB_ENV
+            echo "CXX=${LLVM_PREFIX}/bin/clang++" >> $GITHUB_ENV
+            echo "AR=${LLVM_PREFIX}/bin/llvm-ar" >> $GITHUB_ENV
+            echo "RANLIB=${LLVM_PREFIX}/bin/llvm-ranlib" >> $GITHUB_ENV
+            echo "DYLD_LIBRARY_PATH=${LLVM_PREFIX}/lib:${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
+
+            brew install lld@20
+            LLD_PREFIX=$(brew --prefix lld@20)
+            echo "LLD_PREFIX=${LLD_PREFIX}" >> $GITHUB_ENV
+            echo "LD=${LLD_PREFIX}/bin/ld.lld" >> $GITHUB_ENV
+            echo "LDFLAGS=-L${LLD_PREFIX}/lib" >> $GITHUB_ENV
+            echo "CXXFLAGS=-I${LLD_PREFIX}/include" >> $GITHUB_ENV
+            echo "CFLAGS=-I${LLD_PREFIX}/include" >> $GITHUB_ENV
+
+            echo "PATH=${LLVM_PREFIX}/bin:${LLD_PREFIX}/bin:${PATH}" >> $GITHUB_ENV
+
+            brew install libomp
+            echo "OpenMP_ROOT=$(brew --prefix libomp)" >> $GITHUB_ENV
+
+            brew install ispc
+            brew install gsed
 
       #***********************************#
       # Build steps (one per platform...) #
@@ -196,7 +229,6 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-            brew install ispc
             bash ${{ env.WORKSPACE }}/run-conan.sh
 
       - name: Build (Linux)
@@ -402,10 +434,10 @@ jobs:
           path: conan-cache
           key: deps-${{ matrix.os }}-${{ github.run_id }}
 
-      ## For debugging
-      #- name: Setup tmate session (debug)
-        #if: ${{ failure() }}
-        #uses: mxschmitt/action-tmate@v3
+      # For debugging
+      - name: Setup tmate session (debug)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
 
       # Upload artifacts
       - uses: actions/upload-artifact@v4

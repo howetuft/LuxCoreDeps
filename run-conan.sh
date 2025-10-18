@@ -48,6 +48,12 @@ git clean -df  # cleans any untracked files/folders
 cd ..
 conan remote add mycenter ./conan-center-index
 
+# Patch ocio (MacOS)
+if [[ "$RUNNER_OS" == "macOS" ]]; then
+  gsed -i 's/self\.settings\.compiler\.libcxx == "libc++"/False/g' \
+    conan-center-index/recipes/opencolorio/all/conanfile.py
+fi
+
 # 2. Add local recipe repository (as a remote)
 conan remote add mylocal ./local-conan-recipes
 conan list -r mylocal
@@ -83,6 +89,8 @@ echo "::group::CIBW_BEFORE_BUILD: Install tool requirements"
 # We specify conancenter as a remote, thus allowing to use precompiled
 # binaries.
 # For pkgconf and meson, we have to manually target the right version
+# For b2, we need to build, otherwise we get the following error on Linux:
+# 'b2: /lib64/libstdc++.so.6: version `GLIBCXX_3.4.29' not found (required by b2)'
 build_deps=(b2/[*] cmake/[*] m4/[*] pkgconf/2.1.0 meson/1.2.2 yasm/[*])
 if [[ $RUNNER_OS == "Windows" ]]; then
   build_deps+=(msys2/[*])

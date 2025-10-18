@@ -2,13 +2,20 @@ include(conan-profile-common)
 
 [settings]
 os=Macos
+# TODO
 # 14.2 is required by opensubdiv for metal
-os.version=14.2
+#os.version=15.6
 arch=armv8
-compiler=apple-clang
-compiler.version=15
+compiler=clang
+compiler.version=20
 compiler.cppstd={{ os.getenv("CXX_VERSION") }}
 compiler.libcxx=libc++
+
+#TODO
+#compiler=apple-clang
+#compiler.version=16.0
+#compiler.cppstd={{ os.getenv("CXX_VERSION") }}
+#compiler.libcxx=libc++
 
 [options]
 boost/*:without_stacktrace=True
@@ -17,9 +24,11 @@ minizip-ng/*:with_zlib=True
 minizip-ng/*:with_libcomp=False
 embree/*:shared=True
 
-[buildenv]
-CXX=clang++
-CC=clang
+#[buildenv]
+#CXX=clang++
+#CC=clang
 
 [conf]
-&:tools.build:cxxflags=["-O3"]
+&:tools.build:cxxflags+=["-O3"]
+tools.build:cxxflags+=["-fuse-ld=lld"]
+tools.build:cflags+=["-fuse-ld=lld"]
