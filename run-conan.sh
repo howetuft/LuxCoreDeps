@@ -163,21 +163,33 @@ cd $WORKSPACE
 EMBREE_PROFILE=$CONAN_PROFILE
 if [[ "$RUNNER_OS" == "Windows" && "$RUNNER_ARCH" == "ARM64" ]]; then
   EMBREE_PROFILE=$CLANG_PROFILE_ARM64
+  # Please note the following statement will make embree rebuild every time
+  # whatever the cache contains. Embree build is particularly heavy, so
+  # we restrict this behavior to Windows/ARM64, which requires it
+  conan create conan-center-index/recipes/embree/all \
+    --profile:all=$EMBREE_PROFILE \
+    --version=4.4.1 \
+    --build=embree* \
+    --build=missing 
+
+  conan create $WORKSPACE \
+    --profile:all=$CONAN_PROFILE \
+    --version=$LUXDEPS_VERSION \
+    --remote=mycenter \
+    --remote=mylocal \
+    --build=missing \
+    --build=!embree*
+else
+
+  conan create $WORKSPACE \
+    --profile:all=$CONAN_PROFILE \
+    --version=$LUXDEPS_VERSION \
+    --remote=mycenter \
+    --remote=mylocal \
+    --build=missing
+
 fi
 
-conan create conan-center-index/recipes/embree/all \
-  --profile:all=$EMBREE_PROFILE \
-  --version=4.4.1 \
-  --build=embree* \
-  --build=missing 
-
-conan create $WORKSPACE \
-  --profile:all=$CONAN_PROFILE \
-  --version=$LUXDEPS_VERSION \
-  --remote=mycenter \
-  --remote=mylocal \
-  --build=missing \
-  --build=!embree*
 echo "::endgroup::"
 
 # 8. Save result
