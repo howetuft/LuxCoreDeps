@@ -5,6 +5,8 @@
 # You may also want to clean /tmp/conan-cache, to avoid reinjection of previous
 # builds in the current one
 
+set -e
+
 # Specialized for Linux, but could be changed
 export RUNNER_OS=Linux
 export RUNNER_ARCH=X64
@@ -25,3 +27,5 @@ source run-conan.sh 2>&1 | tee /tmp/run-conan.log
 # Zip file
 cd /tmp/conan-cache
 zip -1 luxcoredeps.zip conan-cache-save.tgz build-info.json
+
+echo "Dependencies written as /tmp/conan-cache/luxcoredeps.zip"
