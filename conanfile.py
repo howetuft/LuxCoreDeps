@@ -178,4 +178,4 @@ class LuxCoreDeps(ConanFile):
 
     def package(self):
         # Just to ensure package is not empty
-        save(self, os.path.join(self.package_folder, "dummy.txt"), "Hello World")
+        save(self, os.path.join(str(self.package_folder), "dummy.txt"), "Hello World")

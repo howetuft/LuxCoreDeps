@@ -90,10 +90,10 @@ class OidnConan(ConanFile):
         tc.variables["OIDN_FILTER_RT"] = self.options.with_filter_rt
         tc.variables["OIDN_FILTER_RTLIGHTMAP"] = self.options.with_filter_rtlightmap
         tc.variables["OIDN_APPS"] = self.options.with_apps
-        if self.options.api_namespace:
-            tc.cache_variables["OIDN_API_NAMESPACE"] = self.options.api_namespace
-        if self.options.library_name:
-            tc.cache_variables["OIDN_LIBRARY_NAME"] = self.options.library_name
+        if str(self.options.api_namespace):
+            tc.cache_variables["OIDN_API_NAMESPACE"] = str(self.options.api_namespace)
+        if str(self.options.library_name):
+            tc.cache_variables["OIDN_LIBRARY_NAME"] = str(self.options.library_name)
         if self.settings.os == "Linux":
             tc.cache_variables["CMAKE_SKIP_RPATH"] = True
             tc.cache_variables["CMAKE_INSTALL_RPATH"] = "\\\\\${ORIGIN}/."
@@ -111,30 +111,34 @@ class OidnConan(ConanFile):
         cmake.build(cli_args=["--verbose", "--clean-first"])
 
     def package(self):
+        package_folder = str(self.package_folder)
+        source_folder = self.source_folder
         copy(
             self,
             "LICENSE.txt",
-            src=self.source_folder,
-            dst=os.path.join(self.package_folder, "licenses"),
+            src=source_folder,
+            dst=os.path.join(package_folder, "licenses"),
         )
         cmake = CMake(self)
         cmake.install()
-        rmdir(self, os.path.join(self.package_folder, "cmake"))
-        rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
-        rmdir(self, os.path.join(self.package_folder, "share"))
+        rmdir(self, os.path.join(package_folder, "cmake"))
+        rmdir(self, os.path.join(package_folder, "lib", "cmake"))
+        rmdir(self, os.path.join(package_folder, "share"))
 
     def package_info(self):
         if self.options.library_name:
             library_name = str(self.options.get_safe("library_name"))
         else:
             library_name = "OpenImageDenoise"
+        library_name = str(library_name)
 
         if self.options.shared:
             # Shared
+            version = str(self.version)
             if self.settings.os == "Linux":
                 self.cpp_info.libs = [
                     library_name,
-                    f"lib{library_name}_core.so.{self.version}",
+                    f"lib{library_name}_core.so.{version}",
                 ]
             elif self.settings.os == "Windows":
                 self.cpp_info.libs = [
@@ -143,9 +147,9 @@ class OidnConan(ConanFile):
                 ]
             elif self.settings.os == "Macos":
                 self.cpp_info.libs = [
-                    f"{library_name}.{self.version}",
-                    f"{library_name}_device_cpu.{self.version}",
-                    f"{library_name}_core.{self.version}",
+                    f"{library_name}.{version}",
+                    f"{library_name}_device_cpu.{version}",
+                    f"{library_name}_core.{version}",
                 ]
         else:
             # Static
