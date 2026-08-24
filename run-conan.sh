@@ -182,6 +182,7 @@ if [[ "$RUNNER_OS" == "Windows" && "$RUNNER_ARCH" == "ARM64" ]]; then
 else
 
   conan create $WORKSPACE \
+    -vvv \
     --profile:all=$CONAN_PROFILE \
     --version=$LUXDEPS_VERSION \
     --remote=mycenter \
