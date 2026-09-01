@@ -38,6 +38,7 @@ openvdb/*:tools.cmake.cmaketoolchain:extra_variables={ 'USE_CCACHE':'OFF' }
 {% endif %}
 
 onetbb/*:tools.cmake.cmaketoolchain:extra_variables={ 'CMAKE_VERBOSE_MAKEFILE': 'ON' }
+libultrahdr/*:tools.build:cxxflags+=["-include cstdint"]
 
 # The following options prevent symbol interpositions from Blender libs in tbb
 # symbol resolution (when working with Blender) and thus avoid version bugs
